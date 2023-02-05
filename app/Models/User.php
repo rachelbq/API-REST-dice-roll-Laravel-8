@@ -2,31 +2,33 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+// use Illuminate\Support\Facades\DB;
+//use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-class User extends Authenticatable
-{
+class User extends Authenticatable { //implements MustVerifyEmail (afegir a la classe o no)
+
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'nickname',
         'email',
         'password',
+        'role',
     ];
 
     /**
-     * The attributes that should be hidden for arrays.
+     * The attributes that should be hidden for serialization.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -34,11 +36,22 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be cast to native types.
+     * The attributes that should be cast.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    protected $attributes = array(
+        'role' => 'player',
+    );
+
+    // 1 user has many plays
+    public function plays()
+    {
+       //return $this->hasMany('App\Models\Play', 'id');
+       return $this->hasMany('App\Models\Play');
+    }
 }
