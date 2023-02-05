@@ -22,8 +22,21 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
+// Passport protected routes
 Route::middleware(['auth:api'])->group(function () {
 
+    // All users:
     Route::post('logout', [AuthController::class, 'logout']);
 
+    // Players:
+    Route::put('players/{id}', [UserController::class, 'editNickname']);
+    Route::post('players/{id}', [PlayController::class, 'diceRoll']);
+    Route::get('players/{id}', [PlayController::class, 'getOwnPlays']);
+    Route::delete('players/{id}', [PlayController::class, 'removeOwnPlays']);
+
+    // Administrators:
+    Route::get('players', [PlayController::class, 'allPlayersInfo']);
+    Route::get('players/ranking', [PlayController::class, 'rankingAverage']);
+    Route::get('players/loser', [PlayController::class, 'loserPlayer']);
+    Route::get('players/winner', [PlayController::class, 'winnerPlayer']);
 });
