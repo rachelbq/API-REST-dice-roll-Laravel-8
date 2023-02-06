@@ -7,8 +7,8 @@ use App\Models\Play;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+//use Illuminate\Http\Request;
+//use Illuminate\Support\Facades\Validator;
 
 
 class PlayController extends Controller {
@@ -19,11 +19,9 @@ class PlayController extends Controller {
      */
     public function diceRoll($id)
     {
-        // return response()->json(['message' => 'PROBANDO RUTA dicesRoll']);
-
         $authUser = Auth::user()->id;
 
-        if ($authUser->id == $id) {    
+        if ($authUser == $id) {    
 
             $dice1 = rand(1,6);
             $dice2 = rand(1,6);
@@ -61,39 +59,32 @@ class PlayController extends Controller {
 
     public function getOwnPlays($id)
     {
-        // return response()->json(['message' => 'PROBANDO RUTA getUserPlays']);
-
         $authUser = Auth::user()->id;
-
-        $user = new User();
-          
-        $userPlays = Play::all()
-            ->where('user_id', '=', $id);
+        if ($authUser != $id) {
+            return response([
+                'message' => 'Access Denied'
+            ], 401);
+        }
     
-        if ($authUser->id == $id) {
-
-            if ($userPlays->isEmpty()) {
-                return response()->json(['Total of plays' => 0], 201); 
-            }
-
-            $play = new Play();
-            $playerPlays = $play->getPlayerPlays($id);
-            $user = new User();
-            $userAverage = $user->getUserAverage($id);
-
-            return [$playerPlays, $userAverage];
-
-        } else {
-
-            return response ([
-                "message" => "User not found"
-            ], 401);}
+        $plays = Play::where('user_id', $id)->get();
+    
+        if ($plays->isEmpty()) {
+            return response([
+                'message' => 'No plays found for this user'
+            ]);
+        }
+    
+        $wins = $plays->where('result', 'you win! :)')->count();
+        $successPercentage = ($wins / $plays->count()) * 100;
+    
+        return [
+            'plays' => $plays,
+            'success_percentage' => $successPercentage.'%',
+        ];
     }
 
     public function removeOwnPlays($id)
     {
-        // return response()->json(['message' => 'PROBANDO RUTA destroyPlays']);
-
         $authUser = Auth::user()->id;
 
         if(!User::find($id)){
@@ -117,66 +108,64 @@ class PlayController extends Controller {
     }
     
     public function rankingAverage()
-    {
-        //return response()->json(['message' => 'PROBANDO RUTA rankingAverage']);
+{
+    if (Auth::user()->role != 'admin') {
 
-        if (Auth::user()->role != 'admin') {
+        return response(['message' => 'Access denied']);
 
-            return response(['message' => 'Access denied']);
+    } else {
 
-        } else {
+        $total_plays = DB::select("SELECT COUNT(*) as total_plays FROM plays");
 
-            $total_plays = DB::select("SELECT COUNT(*) as total_plays FROM plays");
+        $total_success = DB::select("SELECT COUNT(*) as total_success FROM plays WHERE result='you win! :)'");
 
-            $total_success = DB::select("SELECT COUNT(*) as total_success FROM plays WHERE result='you win! :)'");
-
-            $average_ranking = $total_success[0]->total_success / $total_plays[0]->total_plays;
-        }
-
-        return $average_ranking;
+        $average_ranking = $total_success[0]->total_success / $total_plays[0]->total_plays * 100;
     }
+
+    return response()->json([
+        'Average ranking of all users: ' => round($average_ranking, 2).'%',
+    ]);
+}
 
     public function loserPlayer()
     {
-        //return response()->json(['message' => 'PROBANDO RUTA loserPlayer']);
-
         if (Auth::user()->role != 'admin') {
 
             return response(['message' => 'Access denied']);
 
         } else {
-
-            // $worst_player = DB::select("SELECT user_id, COUNT(*) as success_count FROM plays WHERE result='you win! :)' GROUP BY user_id ORDER BY success_count ASC LIMIT 1");
-            $worst_player = DB::select(`
+          
+            $worst_player = DB::select("
                 SELECT user_id, COUNT(*) as success_count FROM plays
                 WHERE result='you win! :)'
                 GROUP BY user_id ORDER BY success_count ASC
                 LIMIT 1
-            `);
+            ");
         }
-
-        return $worst_player;
+        
+        return response()->json([
+            'The loser/worst player is... ' => $worst_player,
+        ]);
     }
     
     public function winnerPlayer()
     {
-        //return response()->json(['message' => 'PROBANDO RUTA winnerPlayer']);
-
         if (Auth::user()->role != 'admin') {
 
             return response(['message' => 'Access denied']);
 
         } else {
 
-        //$best_player = DB::select("SELECT user_id, COUNT(*) as success_count FROM plays WHERE result='you win! :)' GROUP BY user_id ORDER BY success_count DESC LIMIT 1");
-        $best_player = DB::select(`
-            SELECT user_id, COUNT(*) as success_count FROM plays
-            WHERE result='you win! :)'
-            GROUP BY user_id ORDER BY success_count DESC
-            LIMIT 1
-        `);
+            $best_player = DB::select("
+                SELECT user_id, COUNT(*) as success_count FROM plays
+                WHERE result='you win! :)'
+                GROUP BY user_id ORDER BY success_count DESC
+                LIMIT 1
+            ");
         }
 
-        return $best_player;
+        return response()->json([
+            'The winner/best player is... ' => $best_player,
+        ]);
     }
 }

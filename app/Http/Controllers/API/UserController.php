@@ -1,10 +1,13 @@
 <?php
 
+namespace App\Http\Controllers\API;
+
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Play;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+//use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -16,8 +19,6 @@ class UserController extends Controller
     
     public function editNickname(Request $request, $id)
     {
-        // return response()->json(['message' => 'PROBANDO RUTA editNickname']);
- 
         $authUser = Auth::user()->id;
  
         if($authUser == $id) {
@@ -26,7 +27,6 @@ class UserController extends Controller
  
              $request->validate([
                  'nickname' =>'required|min:3|max:50',
-                 'email' => 'required|string|email|unique:users',
              ]);
  
         } elseif(!User::find($id)) {
@@ -42,31 +42,45 @@ class UserController extends Controller
      
         $user->update($request->all());
          
-        //return $user;
-        return response('Nickname changed succesfuly', 200);
+        return response('Nickname changed succesfully', 200);
     }
      
     public function allPlayersInfo()
     { 
-        // return response()->json(['message' => 'PROBANDO RUTA allPlayersInfo']);
- 
-        if(Auth::user()->role == 'admin') {
- 
-            $users = DB::table('users')
-                ->select('*')
-                ->get();
-         
-            return response()->json([
-                'users' => $users,
-                'status' => 200
-            ]);
- 
-        } else {
- 
+        if(Auth::user()->role != 'admin') {
             return response()->json([
                 'message' => 'Acces denied',
                 'status' => 403                
             ]);
         }
+    
+        $users = User::all();
+        $usersArray = [];
+
+        foreach ($users as $user) {
+            
+            $userPlays = Play::where('user_id', $user->id)->get();
+            $totalPlays = $userPlays->count();
+            $winPlays = $userPlays->where('result', 'you win! :)')->count();
+            $successPercentage = 0;
+
+            if ($totalPlays > 0) {
+                $successPercentage = ($winPlays / $totalPlays) * 100;
+            }
+
+            $userArray = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'successPercentage' => $successPercentage
+            ];
+
+            array_push($usersArray, $userArray);
+        }
+    
+        return response()->json([
+            'users' => $usersArray,
+            'status' => 200
+        ]);
     }
-}
+}  
