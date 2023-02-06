@@ -1,8 +1,10 @@
 <?php
 
-use App\Http\Controllers\API\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\PlayController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,28 +17,28 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::post('players', [AuthController::class, 'register'])->name('register');
+Route::post('players/login', [AuthController::class, 'login'])->name('login');
+
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
 
 // Passport protected routes
 Route::middleware(['auth:api'])->group(function () {
 
     // All users:
-    Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('players/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Players:
-    Route::put('players/{id}', [UserController::class, 'editNickname']);
-    Route::post('players/{id}', [PlayController::class, 'diceRoll']);
-    Route::get('players/{id}', [PlayController::class, 'getOwnPlays']);
-    Route::delete('players/{id}', [PlayController::class, 'removeOwnPlays']);
+    Route::put('players/{id}', [UserController::class, 'editNickname'])->name('editNickname');
+    Route::post('players/{id}/games', [PlayController::class, 'diceRoll'])->name('diceRoll');
+    Route::get('players/{id}/games', [PlayController::class, 'getOwnPlays'])->name('getOwnPlays');
+    Route::delete('players/{id}/games', [PlayController::class, 'removeOwnPlays'])->name('removeOwnPlays');
 
     // Administrators:
-    Route::get('players', [PlayController::class, 'allPlayersInfo']);
-    Route::get('players/ranking', [PlayController::class, 'rankingAverage']);
-    Route::get('players/loser', [PlayController::class, 'loserPlayer']);
-    Route::get('players/winner', [PlayController::class, 'winnerPlayer']);
+    Route::get('players', [UserController::class, 'allPlayersInfo'])->name('allPlayersInfo');
+    Route::get('players/ranking', [PlayController::class, 'rankingAverage'])->name('rankingAverage');
+    Route::get('players/ranking/loser', [PlayController::class, 'loserPlayer'])->name('loserPlayer');
+    Route::get('players/ranking/winner', [PlayController::class, 'winnerPlayer'])->name('winnerPlayer');
 });
