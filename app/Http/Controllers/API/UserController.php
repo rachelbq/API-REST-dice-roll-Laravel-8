@@ -22,17 +22,16 @@ class UserController extends Controller
         $authUser = Auth::user()->id;
  
         if($authUser == $id) {
+            $user = User::find($id);
  
-             $user = User::find($id);
- 
-             $request->validate([
-                 'nickname' =>'required|min:3|max:50',
-             ]);
+            $request->validate([
+                'nickname' =>'required|min:3|max:50',
+            ]);
  
         } elseif(!User::find($id)) {
             return response([
                 'message' => 'User not found'
-                    ], 404);
+            ], 404);
  
         } else {
             return response([
@@ -58,7 +57,6 @@ class UserController extends Controller
         $usersArray = [];
 
         foreach ($users as $user) {
-            
             $userPlays = Play::where('user_id', $user->id)->get();
             $totalPlays = $userPlays->count();
             $winPlays = $userPlays->where('result', 'you win! :)')->count();
@@ -83,4 +81,4 @@ class UserController extends Controller
             'status' => 200
         ]);
     }
-}  
+}

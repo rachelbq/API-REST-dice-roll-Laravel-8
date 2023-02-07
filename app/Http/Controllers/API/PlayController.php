@@ -48,18 +48,19 @@ class PlayController extends Controller {
                 'Dice 2 = ' => $dice2,
                 'Sum two dices = ' => $sum,
                 'Result: ' => $result,
-                'Average ranking of all users: ' => $average_ranking,
+                'Average ranking of all users: ' => $average_ranking.'%',
             ]);
 
-       } else {
+        } else {
             return response([
                 'message' => 'User not found']);        
-       }
+        }
     }
 
     public function getOwnPlays($id)
     {
         $authUser = Auth::user()->id;
+
         if ($authUser != $id) {
             return response([
                 'message' => 'Access Denied'
@@ -106,35 +107,36 @@ class PlayController extends Controller {
             return response(['message' => 'Unauthorized'], 401);
         }
     }
-    
+
     public function rankingAverage()
-{
-    if (Auth::user()->role != 'admin') {
+    {
+        if (Auth::user()->role != 'admin') {
+            return response(['message' => 'Access denied']);
 
-        return response(['message' => 'Access denied']);
+        } else {
+            $total_plays = DB::select("SELECT COUNT(*) as total_plays FROM plays");
+            $total_success = DB::select("SELECT COUNT(*) as total_success FROM plays WHERE result='you win! :)'");
 
-    } else {
+            if ($total_plays[0]->total_plays == 0) {
+                return response()->json([
+                    'message' => 'There are no plays'
+            ]);
+            }
 
-        $total_plays = DB::select("SELECT COUNT(*) as total_plays FROM plays");
+            $average_ranking = $total_success[0]->total_success / $total_plays[0]->total_plays * 100;
+        }
 
-        $total_success = DB::select("SELECT COUNT(*) as total_success FROM plays WHERE result='you win! :)'");
-
-        $average_ranking = $total_success[0]->total_success / $total_plays[0]->total_plays * 100;
+        return response()->json([
+            'Average ranking of all users: ' => round($average_ranking, 2).'%'
+        ]);
     }
-
-    return response()->json([
-        'Average ranking of all users: ' => round($average_ranking, 2).'%',
-    ]);
-}
 
     public function loserPlayer()
     {
         if (Auth::user()->role != 'admin') {
-
             return response(['message' => 'Access denied']);
 
         } else {
-          
             $worst_player = DB::select("
                 SELECT user_id, COUNT(*) as success_count FROM plays
                 WHERE result='you win! :)'
@@ -151,11 +153,9 @@ class PlayController extends Controller {
     public function winnerPlayer()
     {
         if (Auth::user()->role != 'admin') {
-
             return response(['message' => 'Access denied']);
 
         } else {
-
             $best_player = DB::select("
                 SELECT user_id, COUNT(*) as success_count FROM plays
                 WHERE result='you win! :)'

@@ -15,20 +15,17 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         if($request->nickname == null || $request->nickname == '') {
-
             $request->merge(['nickname' => 'Anonymous']);
         }
 
         $validatedData = $request->validate([
-            'nickname' => 'nullable|max:45',
+            'nickname' => 'nullable|unique:users,nickname',
             'email' => 'required|email|unique:users',
             'password' => 'required|confirmed',
         ]);
     
         $validatedData['password'] = Hash::make($request->password);
-
         $user = User::create($validatedData);
-
         $accessToken = $user->createToken('authToken')->accessToken;
 
         return response([
