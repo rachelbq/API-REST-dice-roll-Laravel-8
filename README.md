@@ -1,61 +1,118 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+API REST in Laravel 8
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+DESCRIPTION: Game in which two dice are rolled. If these add up to 7, the game is won, otherwise it is lost.
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+SAFETY: includes passport AUTHENTICATION in all accesses to microservice URLs (routes protected by middleware).  The ACCESS CONTROL is configured using tokens.  It has a basic ROLE SYSTEM that has been established to determine the access to the different routes.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+TESTING: the application includes a test file system for each of the routes, executable in PHPunit (list of topics, checks and results below)
 
-## Learning Laravel
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+The next API REST endpoints working success has been tested and verified in postman: 
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    POST	players                 AuthController::class, 'register'       > creates an user
 
-## Laravel Sponsors
+    POST	players/login	        AuthController::class, 'login'          > user login
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
 
-### Premium Partners
+Passport protected routes (middleware) for all users:
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[OP.GG](https://op.gg)**
+    POST	players/logout          AuthController::class, 'logout'	        > user logout
 
-## Contributing
+    PUT     players/{id}            UserController::class, 'editNickname'	> an user modifies his Nickname
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    POST	players/{id}/games      PlayController::class, 'diceRoll'       > an user rolls the dice
 
-## Code of Conduct
+    GET     players/{id}/games      PlayController::class, 'getOwnPlays'	> a specific user gets the list of all his plays
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+    DELETE	players/{id}/games      PlayController::class, 'removeOwnPlays'	> the rolls of a specific user are removed by him
 
-## Security Vulnerabilities
+Passport protected routes (middleware) for administrators only:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+    GET     players                 UserController::class, 'allPlayersInfo'	> list of all users in the system and their average success rate
 
-## License
+    GET     players/ranking         PlayController::class, 'rankingAverage'	> average ranking of all users in the system (average percentage of successes)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    GET     players/ranking/loser   PlayController::class, 'loserPlayer'	> user with worst success rate
+
+    GET     players/ranking/winner	PlayController::class, 'winnerPlayer'	> user with best success rate
+
+
+
+PHPunit TESTING SYSTEM:
+
+   PASS  Tests\Feature\AuthTest
+   
+  ✓ user can register
+  
+  ✓ user can register empty nickname and nicknamed anonymous
+  
+  ✓ required email
+  
+  ✓ required password
+  
+  ✓ required password confirmation
+  
+  ✓ unique nickname
+  
+  ✓ unique email
+  
+  ✓ user can login
+  
+  ✓ required email at login
+  
+  ✓ required password at login
+  
+  ✓ errors validation login email
+  
+  ✓ errors validation login password
+  
+  ✓ auth user can logout
+  
+   PASS  Tests\Feature\UserTest
+   
+  ✓ user can be edit nickname
+  
+  ✓ admin role can list all players info
+  
+  ✓ player role cannot list all players info
+  
+  ✓ unauth user cannot list all players info
+  
+   PASS  Tests\Feature\PlayTest
+   
+  ✓ auth player can roll dice
+  
+  ✓ unauth player cannot roll dice
+  
+  ✓ auth player can get own plays
+  
+  ✓ unauth player cannot get own plays
+  
+  ✓ auth player can remove own plays
+  
+  ✓ unauth player cannot remove own plays
+  
+  ✓ admin role can get ranking average
+  
+  ✓ player role cannot get ranking average
+  
+  ✓ unauth user cannot get ranking average
+  
+  ✓ admin role can get loser player
+  
+  ✓ player role cannot get loser player
+  
+  ✓ unauth user cannot get loser player
+  
+  ✓ admin role can get winner player
+  
+  ✓ player role cannot get winner player
+  
+  ✓ unauth user cannot get winner player
+  
+  Tests:  32 passed
+  
+  Time:   3.36s
+
