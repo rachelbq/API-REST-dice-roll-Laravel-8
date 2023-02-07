@@ -29,14 +29,12 @@ Route::middleware(['auth:api'])->group(function () {
 
     // All users:
     Route::post('players/logout', [AuthController::class, 'logout'])->name('logout');
-
-    // Players:
     Route::put('players/{id}', [UserController::class, 'editNickname'])->name('editNickname');
     Route::post('players/{id}/games', [PlayController::class, 'diceRoll'])->name('diceRoll');
     Route::get('players/{id}/games', [PlayController::class, 'getOwnPlays'])->name('getOwnPlays');
     Route::delete('players/{id}/games', [PlayController::class, 'removeOwnPlays'])->name('removeOwnPlays');
 
-    // Administrators:
+    // Administrators only:
     Route::get('players', [UserController::class, 'allPlayersInfo'])->name('allPlayersInfo');
     Route::get('players/ranking', [PlayController::class, 'rankingAverage'])->name('rankingAverage');
     Route::get('players/ranking/loser', [PlayController::class, 'loserPlayer'])->name('loserPlayer');

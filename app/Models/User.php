@@ -50,7 +50,6 @@ class User extends Authenticatable {
     // 1 user has many plays
     public function plays()
     {
-       //return $this->hasMany('App\Models\Play', 'id');
        return $this->hasMany('App\Models\Play');
     }
 }
