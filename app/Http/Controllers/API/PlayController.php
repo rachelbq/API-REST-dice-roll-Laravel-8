@@ -48,7 +48,6 @@ class PlayController extends Controller {
                 'Dice 2 = ' => $dice2,
                 'Sum two dices = ' => $sum,
                 'Result: ' => $result,
-                'Average ranking of all users: ' => $average_ranking.'%',
             ]);
 
         } else {
